@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.161.0/containers/ubuntu
 {
-	"name": "quay.io/lshakesp/ansiblevscode",
+	"name": "ansiblevscode",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
@@ -25,6 +25,25 @@
 	"remoteUser": "vscode",
 
 	"mounts": [
-		"source=${localEnv:ANSIBLE_VAULT_PASSWORD_FILE},target=/home/vscode/.vault_pass,type=bind,consistency=cached"
-	]
+		"source=${localEnv:HOME}/etc/ca.crt,target=/etc/pki/ca-trust/source/anchors/ca.crt,type=bind,consistency=cached",
+		"source=${localEnv:ANSIBLE_VAULT_PASSWORD_FILE},target=/home/vscode/.vault_pass,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.ansible.cfg,target=/home/vscode/.ansible.cfg,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME}/etc,target=/home/vscode/etc,type=bind,consistency=cached",
+		"source=projectname-bashhistory,target=/commandhistory,type=volume"
+	],
+
+	"postStartCommand": [
+		"/usr/bin/sudo",
+		"/usr/bin/update-ca-trust",
+		"extract"
+	],
+
+	"remoteEnv": {
+		"VCENTER_HOSTNAME": "${localEnv:VCENTER_HOSTNAME}",
+		"VCENTER_USERNAME": "${localEnv:VCENTER_USERNAME}",
+		"VCENTER_PASSWORD": "${localEnv:VCENTER_PASSWORD}",
+		"ANSIBLE_VAULT_PASSWORD_FILE": "/home/vscode/.vault_pass"
+	}
+
 }

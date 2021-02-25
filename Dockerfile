@@ -1,21 +1,34 @@
 FROM registry.redhat.io/ubi8/ubi
 
-ENV user=vscode
-ENV home=/home/${user}
+ARG USERNAME=vscode
+ENV HOME=/home/${USERNAME}
 
 RUN yum -y install --disableplugin=subscription-manager \
-  python3 python3-devel vim git gcc make sudo \
+  python3 python3-devel python3-requests vim git gcc make \
+  iputils sudo procps-ng \
   && yum --disableplugin=subscription-manager clean all
 
-RUN useradd -u 1001 ${user} -s /bin/bash -G wheel
+# COPY ca.crt  /etc/pki/ca-trust/source/anchors/
+# RUN update-ca-trust extract
+
+RUN useradd -u 1001 ${USERNAME} -s /bin/bash -G wheel
 RUN echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-USER ${user}
+
+RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
+    && mkdir /commandhistory \
+    && touch /commandhistory/.bash_history \
+    && chown -R $USERNAME /commandhistory \
+    && echo $SNIPPET >> "/home/$USERNAME/.bashrc"
+
+USER ${USERNAME}
 RUN pip3 install tox --user
-RUN mkdir ${home}/local
-RUN git clone https://github.com/lshake/bootstrap_ansible.git ${home}/local/bootstrap_ansible
 
-WORKDIR ${home}/local/bootstrap_ansible
-RUN ${home}/.local/bin/tox --notest
+RUN mkdir ${HOME}/local && mkdir ${HOME}/etc
+COPY --chown=${USERNAME} bootstrap_ansible ${HOME}/local/bootstrap_ansible
 
-WORKDIR ${home}
-RUN echo 'source ~/local/python/tox/py3-ansible30/bin/activate' >> ${home}/.bash_profile
+WORKDIR ${HOME}/local/bootstrap_ansible
+RUN ${HOME}/.local/bin/tox --notest
+
+WORKDIR ${HOME}
+RUN echo 'source ~/local/python/tox/py3-ansible30/bin/activate' >> ${HOME}/.bash_profile
+RUN echo 'export PS1="[\\w]\\$ "' >> ${HOME}/.bash_profile
