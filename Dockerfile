@@ -1,6 +1,7 @@
 FROM registry.redhat.io/ubi8/ubi
 
 ARG USERNAME=vscode
+ARG VENV=py3-ansible29
 ENV HOME=/home/${USERNAME}
 
 RUN yum -y install --disableplugin=subscription-manager \
@@ -8,11 +9,9 @@ RUN yum -y install --disableplugin=subscription-manager \
   iputils sudo procps-ng \
   && yum --disableplugin=subscription-manager clean all
 
-# COPY ca.crt  /etc/pki/ca-trust/source/anchors/
-# RUN update-ca-trust extract
-
 RUN useradd -u 1001 ${USERNAME} -s /bin/bash -G wheel
 RUN echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+RUN ln -s /Users /home
 
 RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
     && mkdir /commandhistory \
@@ -30,5 +29,6 @@ WORKDIR ${HOME}/local/bootstrap_ansible
 RUN ${HOME}/.local/bin/tox --notest
 
 WORKDIR ${HOME}
-RUN echo 'source ~/local/python/tox/py3-ansible30/bin/activate' >> ${HOME}/.bash_profile
-RUN echo 'export PS1="[\\w]\\$ "' >> ${HOME}/.bash_profile
+RUN echo "source ~/local/python/tox/${VENV}/bin/activate" >> ${HOME}/.bash_profile \
+    && echo 'export PS1="[\\w]\\$ "' >> ${HOME}/.bash_profile \
+    && echo 'export REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt' >> ${HOME}/.bash_profile
