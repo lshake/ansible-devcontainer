@@ -3,7 +3,7 @@
 {
 	"name": "ansiblevscode",
 	"build": {
-		"dockerfile": "Dockerfile"
+		"dockerfile": "Dockerfile",
 		"args": {
 			"USERNAME": "${localEnv:USER}",
 			"VENV": "py3-ansible3"
@@ -32,9 +32,9 @@
 	],
 
 	"postCreateCommand": [
-		"ln"
-		"-s"
-		"/workspaces"
+		"ln",
+		"-s",
+		"/workspaces",
 		"/home/${localEnv:USER}/projects"
 	],
 
