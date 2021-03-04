@@ -1,3 +1,0 @@
-[submodule "bootstrap_ansible"]
-	path = bootstrap_ansible
-	url = https://github.com/lshake/bootstrap_ansible.git
